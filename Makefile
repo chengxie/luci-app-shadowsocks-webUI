@@ -106,5 +106,5 @@ define Build/Prepare
 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
 endef
 
-$(eval $(call BuildPackage, luci-app-shadowsocks-webUI))
+$(eval $(call BuildPackage,luci-app-shadowsocks-webUI))
 
