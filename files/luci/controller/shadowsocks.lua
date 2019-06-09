@@ -30,22 +30,16 @@ function index()
 
 
 	entry({"admin", "services", "shadowsocks", "status"}, call("action_status")).leaf = true
-	entry({"admin", "services", "shadowsocks", "check"}, call("check_status"))
+	entry({"admin", "services", "shadowsocks", "check"}, call("check_status")).leaf = true
 	entry({"admin", "services", "shadowsocks", "refresh"}, call("refresh_data"))
 	entry({"admin", "services", "shadowsocks", "checkport"}, call("check_port"))
 
 end
 
 function check_status()
-	local set ="/usr/bin/ss-check www." .. luci.http.formvalue("set") .. ".com 80 3 1"
-	sret=luci.sys.call(set)
-	if sret== 0 then
-		retstring ="0"
-	else
-		retstring ="1"
-	end	
+	local retstring = luci.sys.call("ss-check https://www.%s.com" % luci.http.formvalue("set"))
 	luci.http.prepare_content("application/json")
-	luci.http.write_json({ ret=retstring })
+	luci.http.write_json({ ret = retstring })
 end
 
 function refresh_data()
@@ -53,7 +47,7 @@ function refresh_data()
 	local icount =0
 	if set == "gfw_data" then
 		refresh_cmd="/usr/bin/update_gfwlist.sh >> /var/log/update_gfwlist.log"
-		sret = luci.sys.call(refresh_cmd .. " 2>/dev/null")
+		sret = luci.sys.call(refresh_cmd .. " >/dev/null")
 		if sret == 0 then
 			icount = luci.sys.exec("cat /etc/dnsmasq.d/gfwlist.conf | wc -l")
 			retstring = tostring(tonumber(icount))
@@ -62,7 +56,7 @@ function refresh_data()
 		end
 	elseif set == "ip_data" then
 		refresh_cmd="/usr/bin/update_chnroute.sh >> /var/log/update_chnroute.log"
-		sret = luci.sys.call(refresh_cmd .. " 2>/dev/null")
+		sret = luci.sys.call(refresh_cmd .. " >/dev/null")
 		icount = luci.sys.exec("cat /etc/shadowsocks/chnroute.list | wc -l")
 		if sret == 0 then
 			retstring = tostring(tonumber(icount))
@@ -76,11 +70,11 @@ end
 
 
 function check_port()
+	local shadowsocks = "shadowsocks"
 	local set=""
 	local retstring="<br /><br />"
 	local s
 	local server_name = ""
-	local shadowsocks = "shadowsocks"
 	local uci = luci.model.uci.cursor()
 	local iret=1
 
@@ -111,18 +105,18 @@ function check_port()
 	luci.http.write_json({ ret=retstring })
 end
 
-local function server_is_running(name)
-	local ret = luci.sys.exec("ps | grep ssr-redir | grep -v grep | grep %s | wc -l" % name)
+local function server_is_running(port)
+	local ret = luci.sys.exec("ps -w | grep ss-redir | grep -v grep | grep %s | wc -l" % port)
 	return tonumber(ret)
 end
 
 function action_status()
-
+	local shadowsocks = "shadowsocks"
 	local proxy_list = {}
+	local uci = luci.model.uci.cursor()
 	uci:foreach(shadowsocks, "transparent_proxy_list", function(s)
-		proxy_list[s.server] = server_is_running(s.server) 
+		proxy_list[s.tpl_local_port] = server_is_running(s.tpl_local_port)
 	end)
-
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(proxy_list)
 end

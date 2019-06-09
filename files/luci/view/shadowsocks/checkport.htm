@@ -5,23 +5,14 @@
 	function check_port(btn)
 	{
 		btn.disabled = true;
-		btn.value    = '<%:Check...%>';
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "shadowsocksr","checkport")%>',
-			null,
-			function(x,rv)
-			{
-			var s = document.getElementById('<%=self.option%>-status');
-			if (s)
-			{
-
-				s.innerHTML =rv.ret;
-
-
-
-			}
-
+		btn.value = "<%:Check...%>";
+		XHR.get("<%=luci.dispatcher.build_url("admin", "services", "shadowsocks","checkport")%>",null, function(x,rv) {
+				var s = document.getElementById('<%=self.option%>-status');
+				if (s) {
+					s.innerHTML =rv.ret;
+				}
 				btn.disabled = false;
-				btn.value    = '<%:Check Server%>';
+				btn.value = "<%:Check Server%>";
 			}
 		);
 

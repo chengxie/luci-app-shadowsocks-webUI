@@ -40,11 +40,6 @@ has_valid_server() {
 	return 1
 }
 
-get_arg_udp() {
-	local server=$(uci_get_by_type transparent_proxy udp_relay_server)
-	[ "$server" = "same" ] || validate_server $server && echo "-u"
-}
-
 get_arg_out() {
 	case "$(uci_get_by_type access_control self_proxy 1)" in
 		1) echo "-o";;
@@ -61,8 +56,10 @@ get_arg_tnd() {
 }
 
 get_lan_hosts() {
-	uci_bool_by_name $1 enable && \
-		echo "$(uci_get_by_name $1 type),$(uci_get_by_name $1 macaddr)"
+	local tplservername=$(uci_get_by_name $1 server)
+	local tplport=$(uci_get_by_name $tplservername tpl_local_port)
+	[ $tplservername = "nil" ] || \
+		echo "$(uci_get_by_name $1 type),$(uci_get_by_name $1 macaddr),$tplport"
 }
 
 get_plugin_config() {
@@ -114,6 +111,10 @@ get_server_ip_list() {
 	echo $(resolve_server_ip $domain)
 }
 
+get_server_port_list() {
+	echo $(uci_get_by_name $1 tpl_local_port)	
+}
+
 #$1: server name by hash
 gen_config_file() {
 	local server_name=$(uci_get_by_name $1 server)
@@ -135,9 +136,12 @@ gen_config_file() {
 
 start_rules() {
 	config_load $NAME
+	local port_list=$(config_foreach get_server_port_list transparent_proxy_list)
+	local default_port=$(echo $port_list | awk '{ print $1 }')
 	/usr/bin/ss-rules \
 		-s "$(config_foreach get_server_ip_list servers)" \
-		-l "$(uci_get_by_type transparent_proxy local_port 1234)" \
+		-l "$default_port" \
+		-p "$port_list" \
 		-B "$(uci_get_by_type access_control wan_bp_list)" \
 		-b "$(uci_get_by_type access_control wan_bp_ips)" \
 		-W "$(uci_get_by_type access_control wan_fw_list)" \
@@ -146,7 +150,7 @@ start_rules() {
 		-d "$(uci_get_by_type access_control lan_target)" \
 		-a "$(config_foreach get_lan_hosts lan_hosts)" \
 		-e "$(uci_get_by_type access_control ipt_ext)" \
-		$(get_arg_out) $(get_arg_udp)
+		$(get_arg_out) -u
 }
 
 rules() {
@@ -155,12 +159,12 @@ rules() {
 }
 
 start_redir() {
-	local server_cfg=$(uci_get_by_type $1 tpl_server)
+	local server_cfg=$(uci_get_by_name $1 tpl_server)
 	validate_server $server_cfg || return 0
 	ss-redir -c $(gen_config_file $server_cfg) \
 		-u \
-		-l $(uci_get_by_type $1 tpl_local_port 1234) \
-		--mtu $(uci_get_by_type $1 tpl_mtu 1492) \
+		-l $(uci_get_by_name $1 tpl_local_port 1234) \
+		--mtu $(uci_get_by_name $1 tpl_mtu 1492) \
 		$(get_arg_tfo $server_cfg) $(get_arg_tnd $server_cfg) \
 		-f /var/run/ss-redir-$server_cfg.pid
 }
@@ -170,7 +174,7 @@ start() {
 	mkdir -p /var/run /var/etc /var/etc/$NAME
 	config_load $NAME
 	config_foreach start_redir transparent_proxy_list
-	#rules
+	rules
 }
 
 boot() {

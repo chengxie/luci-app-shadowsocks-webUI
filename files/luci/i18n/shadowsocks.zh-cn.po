@@ -28,8 +28,8 @@ msgstr "运行中"
 msgid "Startup Delay"
 msgstr "自启动延时"
 
-msgid "Transparent Proxy"
-msgstr "透明代理"
+msgid "Transparent Proxy List"
+msgstr "透明代理列表"
 
 msgid "UDP Relay"
 msgstr "UDP转发"

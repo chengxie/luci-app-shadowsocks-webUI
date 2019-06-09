@@ -12,8 +12,7 @@ usage() {
 		Valid options are:
 		    -s <server_ips>         ip address of shadowsocks remote server
 		    -l <local_port>         port number of shadowsocks local server
-		    -S <server_ips>         ip address of shadowsocks remote UDP server
-		    -L <local_port>         port number of shadowsocks local UDP server
+		    -p <local_port_list>	port list of shadowsocks local server
 		    -B <ip_list_file>       a file whose content is bypassed ip list
 		    -b <wan_ips>            wan ip of will be bypassed
 		    -W <ip_list_file>       a file whose content is forwarded ip list
@@ -21,12 +20,11 @@ usage() {
 		    -I <interface>          proxy only for the given interface
 		    -d <target>             the default target of lan access control
 		    -a <lan_hosts>          lan ip of access control, need a prefix to
-		                            define proxy type
+		                            define proxy type and need define proxy server
 		    -e <extra_args>         extra arguments for iptables
 		    -o                      apply the rules to the OUTPUT chain
 		    -O                      apply the global rules to the OUTPUT chain
 		    -u                      enable udprelay mode, TPROXY is required
-		    -U                      enable udprelay mode, using different IP
 		                            and ports for TCP and UDP
 		    -f                      flush the rules
 		    -h                      show this help message and exit
@@ -53,20 +51,41 @@ flush_rules() {
 	return 0
 }
 
+create_hash_group() {	
+	for port in $local_port_list; do
+		if [ $port -ne $local_port ]; then
+			echo create ss_spec_src_ac_$port hash:mac hashsize 64
+			echo create ss_spec_src_fw_$port hash:mac hashsize 64
+			echo create ss_spec_dst_fw_$port hash:net hashsize 64
+		fi
+	done
+}
+
+add_dst_fw_group() {
+	for port in $local_port_list; do
+		if [ $port -ne $local_port ]; then
+			$(sed -e "s/^/add ss_spec_dst_fw_$port /" ${WAN_FW_LIST:=/dev/null} 2>/dev/null)
+			$(for ip in $WAN_FW_IP; do echo "add ss_spec_dst_fw_$port $ip"; done)
+		fi
+	done
+}
+
 ipset_init() {
 	ipset -! restore <<-EOF || return 1
-		create ss_spec_src_ac hash:ip hashsize 64
-		create ss_spec_src_bp hash:ip hashsize 64
-		create ss_spec_src_fw hash:ip hashsize 64
+		create ss_spec_src_ac hash:mac hashsize 64
+		create ss_spec_src_bp hash:mac hashsize 64
+		create ss_spec_src_fw hash:mac hashsize 64
 		create ss_spec_dst_sp hash:net hashsize 64
 		create ss_spec_dst_bp hash:net hashsize 64
 		create ss_spec_dst_fw hash:net hashsize 64
+		$(create_hash_group)
 		$(gen_lan_host_ipset_entry)
 		$(gen_special_purpose_ip | sed -e "s/^/add ss_spec_dst_sp /")
 		$(sed -e "s/^/add ss_spec_dst_bp /" ${WAN_BP_LIST:=/dev/null} 2>/dev/null)
 		$(for ip in $WAN_BP_IP; do echo "add ss_spec_dst_bp $ip"; done)
 		$(sed -e "s/^/add ss_spec_dst_fw /" ${WAN_FW_LIST:=/dev/null} 2>/dev/null)
 		$(for ip in $WAN_FW_IP; do echo "add ss_spec_dst_fw $ip"; done)
+		$(add_dst_fw_group)
 EOF
 	return 0
 }
@@ -76,6 +95,13 @@ ipt_nat() {
 	ipt="iptables -t nat"
 	$ipt -A SS_SPEC_WAN_FW -p tcp \
 		-j REDIRECT --to-ports $local_port || return 1
+	for port in $local_port_list; do
+		if [ $port -ne $local_port ]; then
+			$ipt -A SS_SPEC_WAN_FW_$port -p tcp \
+				-j REDIRECT --to-ports $port || return 1
+		fi
+	done		
+
 	if [ -n "$OUTPUT" ]; then
 		$ipt -N SS_SPEC_WAN_DG
 		$ipt -A SS_SPEC_WAN_DG -m set --match-set ss_spec_dst_sp dst -j RETURN
@@ -95,7 +121,13 @@ ipt_mangle() {
 	ip route add local default dev lo table 100
 	include_ac_rules mangle
 	iptables -t mangle -A SS_SPEC_WAN_FW -p udp \
-		-j TPROXY --on-port $LOCAL_PORT --tproxy-mark 0x01/0x01
+		-j TPROXY --on-port $local_port --tproxy-mark 0x01/0x01
+	for port in $local_port_list; do
+		if [ $port -ne $local_port ]; then
+		iptables -t mangle -A SS_SPEC_WAN_FW_$port -p udp \
+			-j TPROXY --on-port $port --tproxy-mark 0x01/0x01
+		fi
+	done
 	return $?
 }
 
@@ -113,15 +145,26 @@ CAT
 
 gen_lan_host_ipset_entry() {
 	for host in $LAN_HOSTS; do
-		case "${host:0:1}" in
+		local fwtype=$(echo $host | awk -F',' '{ print $1 }')
+        local addr=$(echo $host | awk -F',' '{ print $2 }')
+        local fwport=$(echo $host | awk -F',' '{ print $3 }')
+		case $fwtype in
 			b|B)
-				echo add ss_spec_src_bp ${host:2}
+				echo add ss_spec_src_bp $addr
 				;;
 			g|G)
-				echo add ss_spec_src_fw ${host:2}
+				if [ $fwport -ne $local_port ]; then
+					echo add ss_spec_src_fw_$fwport $addr
+				else
+					echo add ss_spec_src_fw $addr
+				fi
 				;;
 			n|N)
-				echo add ss_spec_src_ac ${host:2}
+				if [ $fwport -ne $local_port ]; then
+					echo add ss_spec_src_ac_$fwport $addr
+				else
+					echo add ss_spec_src_ac $addr
+				fi
 				;;
 		esac
 	done
@@ -148,9 +191,35 @@ gen_special_purpose_ip() {
 		224.0.0.0/4
 		240.0.0.0/4
 		255.255.255.255
-		$server
-		$SERVER
+		$server_ips
 EOF
+}
+
+create_ac_rules_group() {
+	for port in $local_port_list; do
+		if [ $port -ne $local_port ]; then
+			echo :SS_SPEC_WAN_AC_$port - [0:0]
+			echo :SS_SPEC_WAN_FW_$port - [0:0]
+		fi
+	done
+}
+
+add_lan_ac_rules_group() {
+	for port in $local_port_list; do
+		if [ $port -ne $local_port ]; then
+			echo -A SS_SPEC_LAN_AC -m set --match-set ss_spec_src_fw_$port src -j SS_SPEC_WAN_FW_$port
+			echo -A SS_SPEC_LAN_AC -m set --match-set ss_spec_src_ac_$port src -j SS_SPEC_WAN_AC_$port
+		fi
+	done
+}
+
+add_wan_ac_rules_group() {
+	for port in $local_port_list; do
+		if [ $port -ne $local_port ]; then
+			echo -A SS_SPEC_WAN_AC_$port -m set --match-set ss_spec_dst_fw_$port dst -j SS_SPEC_WAN_FW_$port
+			echo -A SS_SPEC_WAN_AC_$port -j SS_SPEC_WAN_FW_$port
+		fi
+	done
 }
 
 include_ac_rules() {
@@ -161,14 +230,17 @@ include_ac_rules() {
 	:SS_SPEC_LAN_AC - [0:0]
 	:SS_SPEC_WAN_AC - [0:0]
 	:SS_SPEC_WAN_FW - [0:0]
+	$(create_ac_rules_group)
 	-A SS_SPEC_LAN_DG -m set --match-set ss_spec_dst_sp dst -j RETURN
 	-A SS_SPEC_LAN_DG -p $protocol $EXT_ARGS -j SS_SPEC_LAN_AC
 	-A SS_SPEC_LAN_AC -m set --match-set ss_spec_src_bp src -j RETURN
 	-A SS_SPEC_LAN_AC -m set --match-set ss_spec_src_fw src -j SS_SPEC_WAN_FW
 	-A SS_SPEC_LAN_AC -m set --match-set ss_spec_src_ac src -j SS_SPEC_WAN_AC
+	$(add_lan_ac_rules_group)
 	-A SS_SPEC_LAN_AC -j ${LAN_TARGET:=SS_SPEC_WAN_AC}
 	-A SS_SPEC_WAN_AC -m set --match-set ss_spec_dst_fw dst -j SS_SPEC_WAN_FW
 	-A SS_SPEC_WAN_AC -m set --match-set ss_spec_dst_bp dst -j RETURN
+	$(add_wan_ac_rules_group)
 	-A SS_SPEC_WAN_AC -j SS_SPEC_WAN_FW
 	$(gen_prerouting_rules $protocol)
 	COMMIT
@@ -182,19 +254,16 @@ gen_prerouting_rules() {
 	done
 }
 
-while getopts ":s:l:S:L:B:b:W:w:I:d:a:e:oOuUfh" arg; do
+while getopts ":s:l:p:B:b:W:w:I:d:a:e:oOufh" arg; do
 	case "$arg" in
 		s)
-			server=$(for ip in $OPTARG; do echo $ip; done)
+			server_ips=$(for ip in $OPTARG; do echo $ip; done)
 			;;
 		l)
 			local_port=$OPTARG
 			;;
-		S)
-			SERVER=$(for ip in $OPTARG; do echo $ip; done)
-			;;
-		L)
-			LOCAL_PORT=$OPTARG
+		p)
+			local_port_list=$OPTARG
 			;;
 		B)
 			WAN_BP_LIST=$OPTARG
@@ -229,9 +298,6 @@ while getopts ":s:l:S:L:B:b:W:w:I:d:a:e:oOuUfh" arg; do
 		u)
 			TPROXY=1
 			;;
-		U)
-			TPROXY=2
-			;;
 		f)
 			flush_rules
 			exit 0
@@ -242,16 +308,7 @@ while getopts ":s:l:S:L:B:b:W:w:I:d:a:e:oOuUfh" arg; do
 	esac
 done
 
-[ -z "$server" -o -z "$local_port" ] && usage 2
-
-if [ "$TPROXY" = 1 ]; then
-	unset SERVER
-	LOCAL_PORT=$local_port
-elif [ "$TPROXY" = 2 ]; then
-	: ${SERVER:?"You must assign an ip for the udp relay server."}
-	: ${LOCAL_PORT:?"You must assign a port for the udp relay server."}
-fi
-
+[ -z "$server_ips" -o -z "$local_port" ] && usage 2
 flush_rules && ipset_init && ipt_nat && ipt_mangle && export_ipt_rules
 RET=$?
 [ "$RET" = 0 ] || loger 3 "Start failed!"

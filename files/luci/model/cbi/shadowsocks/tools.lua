@@ -8,7 +8,7 @@ local ip_count=0
 local gfwmode=0
 
 if nixio.fs.access("/etc/dnsmasq.d/gfwlist.conf") then
-gfwmode=1	
+	gfwmode=1	
 end
 
 local shadowsocks = "shadowsocks"
@@ -21,12 +21,12 @@ bold_off = [[</strong>]]
 local fs = require "nixio.fs"
 local sys = require "luci.sys"
 
-if gfwmode==1 then 
- gfw_count = tonumber(sys.exec("cat /etc/dnsmasq.d/gfwlist.conf | wc -l"))
+if gfwmode == 1 then 
+ 	gfw_count = tonumber(sys.exec("cat /etc/dnsmasq.d/gfwlist.conf | wc -l"))
 end
  
-if nixio.fs.access("/etc/shadowsocks/china_chnroute.list") then 
- ip_count = sys.exec("cat /etc/shadowsocks/china_chnroute.list | wc -l")
+if nixio.fs.access("/etc/shadowsocks/chnroute.list") then 
+ 	ip_count = sys.exec("cat /etc/shadowsocks/chnroute.list | wc -l")
 end
 
 
@@ -44,10 +44,10 @@ s.value = translate("No Check")
 s.template = "shadowsocks/check"
 
 if gfwmode==1 then 
-s=m:field(DummyValue,"gfw_data",translate("GFW List Data")) 
-s.rawhtml  = true
-s.template = "shadowsocks/refresh"
-s.value =tostring(math.ceil(gfw_count)) .. " " .. translate("Records")
+	s=m:field(DummyValue,"gfw_data",translate("GFW List Data")) 
+	s.rawhtml  = true
+	s.template = "shadowsocks/refresh"
+	s.value =tostring(math.ceil(gfw_count)) .. " " .. translate("Records")
 end
 
 s=m:field(DummyValue,"ip_data",translate("China IP Data")) 
@@ -65,7 +65,7 @@ s.value =IPK_Version
 
 s=m:field(DummyValue,"project",translate("Project")) 
 s.rawhtml  = true
-s.value =bold_on .. [[<a href="]] .. "https://github.com/chengxie/openwrt-ss" .. [[" >]]
-	.. "https://github.com/chengxie/openwrt-ss" .. [[</a>]] .. bold_off
+s.value =bold_on .. [[<a href="]] .. "https://github.com/chengxie/luci-app-shadowsocks-webUI" .. [[" >]]
+	.. "https://github.com/chengxie/luci-app-shadowsocks-webUI" .. [[</a>]] .. bold_off
 	
 return m
