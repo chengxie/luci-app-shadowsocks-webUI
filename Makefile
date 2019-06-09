@@ -26,7 +26,7 @@ define Package/luci-app-shadowsocks-webUI
 	TITLE:=LuCI Support for shadowsocks-libev
 	URL:=https://github.com/chengxie/luci-app-shadowsocks-webUI
 	PKGARCH:=all
-	DEPENDS:=+shadowsocks-libev-ss-redir +ipset +ip +iptables +iptables-mod-tproxy +coreutils +coreutils-base64 +haveged +curl +wget
+	DEPENDS:=+shadowsocks-libev-ss-redir +ipset +ip +iptables +iptables-mod-tproxy +coreutils +coreutils-base64 +haveged +curl
 endef
 
 define Package/luci-app-shadowsocks-webUI/description
