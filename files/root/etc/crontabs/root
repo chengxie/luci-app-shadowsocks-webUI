@@ -1,0 +1,2 @@
+0 3 * * * /usr/bin/update_chnroute.sh >> /var/log/update_chnroute.log 2>/dev/null
+0 3 * * * /usr/bin/update_gfwlist.sh >> /var/log/update_gfwlist.log 2>/dev/null
