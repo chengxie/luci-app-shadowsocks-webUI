@@ -74,8 +74,7 @@ Package/luci-app-shadowsocks-webUI/postinst = $(call Package/luci-app-shadowsock
 
 define Package/luci-app-shadowsocks-webUI/install/Default
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) ./files/$(2).rule $(1)/usr/bin/ss-rules
-	#$(INSTALL_BIN) ./files/$(2).check $(1)/usr/bin/ss-check
+	$(INSTALL_BIN) ./files/root/usr/bin/* $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/controller
 	$(INSTALL_DATA) ./files/luci/controller/$(2).lua $(1)/usr/lib/lua/luci/controller/$(2).lua
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
@@ -84,19 +83,20 @@ define Package/luci-app-shadowsocks-webUI/install/Default
 	$(INSTALL_DATA) ./files/luci/model/cbi/$(2)/*.lua $(1)/usr/lib/lua/luci/model/cbi/$(2)/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/view/$(2)
 	$(INSTALL_DATA) ./files/luci/view/$(2)/*.htm $(1)/usr/lib/lua/luci/view/$(2)/
-	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./files/root/etc/uci-defaults/luci-$(2) $(1)/etc/uci-defaults/luci-$(2)	
+	$(INSTALL_DIR) $(1)/etc
+	$(INSTALL_DATA) ./files/root/etc/dnsmasq.conf $(1)/etc/
 	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/$(2).config $(1)/etc/config/$(2)
-	$(INSTALL_DIR) $(1)/etc/$(2)
-	$(INSTALL_BIN) ./files/*.sh $(1)/etc/$(2)/
-	$(INSTALL_DATA) ./files/china_chnroute.list $(1)/etc/$(2)/china_chnroute.list	
-	$(INSTALL_DIR) $(1)/etc/dnsmasq.d
-	$(INSTALL_DATA) ./files/gfwlist.conf $(1)/etc/dnsmasq.d/gfwlist.conf
+	$(INSTALL_DATA) ./files/root/etc/config/* $(1)/etc/config/
 	$(INSTALL_DIR) $(1)/etc/crontabs
-	$(INSTALL_DATA) ./files/crontab.root $(1)/etc/crontabs/root
+	$(INSTALL_DATA) ./files/root/etc/crontabs/* $(1)/etc/crontabs/
+	$(INSTALL_DIR) $(1)/etc/dnsmasq.d
+	$(INSTALL_DATA) ./files/root/etc/dnsmasq.d/* $(1)/etc/dnsmasq.d/
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/$(2).init $(1)/etc/init.d/$(2)
+	$(INSTALL_BIN) ./files/root/etc/init.d/* $(1)/etc/init.d/
+	$(INSTALL_DIR) $(1)/etc/$(2)
+	$(INSTALL_DATA) ./files/root/etc/$(2)/* $(1)/etc/$(2)/
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/root/etc/uci-defaults/* $(1)/etc/uci-defaults/
 endef
 Package/luci-app-shadowsocks-webUI/install = $(call Package/luci-app-shadowsocks-webUI/install/Default, $(1), shadowsocks)
 
