@@ -70,6 +70,7 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	chmod 755 /etc/init.d/$(1) >/dev/null 2>&1
 	/etc/init.d/$(1) enable >/dev/null 2>&1
 fi
+echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
 exit 0
 endef
 Package/luci-app-shadowsocks-webUI/postinst = $(call Package/luci-app-shadowsocks-webUI/postinst/Default,shadowsocks)
@@ -89,8 +90,6 @@ define Package/luci-app-shadowsocks-webUI/install/Default
 	$(INSTALL_DATA) ./files/luci/model/cbi/$(2)/*.lua $(1)/usr/lib/lua/luci/model/cbi/$(2)/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/view/$(2)
 	$(INSTALL_DATA) ./files/luci/view/$(2)/*.htm $(1)/usr/lib/lua/luci/view/$(2)/
-	$(INSTALL_DIR) $(1)/etc
-	$(INSTALL_DATA) ./files/root/etc/dnsmasq.conf $(1)/etc/
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DATA) ./files/root/etc/config/* $(1)/etc/config/
 	$(INSTALL_DIR) $(1)/etc/crontabs
