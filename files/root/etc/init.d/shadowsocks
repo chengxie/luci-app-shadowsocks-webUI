@@ -170,6 +170,11 @@ start_redir() {
 }
 
 start() {
+	local h=$(grep "conf-dir=/etc/dnsmasq.d" /etc/dnsmasq.conf)
+	if [ -z $h ]; then
+		echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
+		/etc/init.d/dnsmasq restart
+	fi
 	command -v ss-redir >/dev/null 2>&1 || return 1
 	mkdir -p /var/run /var/etc /var/etc/$NAME
 	config_load $NAME
