@@ -9,11 +9,6 @@ uci get shadowsocks.@lan_hosts[-1] >/dev/null 2>&1 || \
 	uci add shadowsocks lan_hosts >/dev/null 2>&1
 uci get shadowsocks.@servers[-1] >/dev/null 2>&1 || \
 	uci add shadowsocks servers >/dev/null 2>&1
-uci get shadowsocks.@tools[-1] >/dev/null 2>&1 || \
-	uci add shadowsocks tools >/dev/null 2>&1
-uci get shadowsocks.@check[-1] >/dev/null 2>&1 || \
-	uci add shadowsocks check >/dev/null 2>&1
-
 
 uci commit shadowsocks
 uci -q batch <<-EOF >/dev/null

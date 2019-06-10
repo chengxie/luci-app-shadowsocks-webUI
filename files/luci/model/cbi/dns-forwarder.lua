@@ -23,8 +23,8 @@ o.datatype    = "port"
 o.rmempty     = false
 
 o = s:option(Value, "listen_addr", translate("Listen Address"))
-o.placeholder = "0.0.0.0"
-o.default     = "0.0.0.0"
+o.placeholder = "127.0.0.1"
+o.default     = "127.0.0.1"
 o.datatype    = "ipaddr"
 o.rmempty     = false
 

@@ -1,7 +1,4 @@
 #!/bin/sh
 
-curl -L $1 >/dev/null
-if [ "$?" != "0" ]; then
-	return 0
-fi
-return 0
+HTTP_CODE=`curl -o /dev/null --connect-timeout 10 -s --head -w "%{http_code}" "$1"`
+[ ${HTTP_CODE} -ne 200 ] && return 1 || return 0
