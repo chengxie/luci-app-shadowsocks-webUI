@@ -28,7 +28,7 @@ define Package/luci-app-shadowsocks-webUI
 	PKGARCH:=all
 	DEPENDS:=+shadowsocks-libev-ss-redir +dns-forwarder \
 		+ipset +ip +iptables \
-		+iptables-mod-tproxy +iptables-mods-extra \
+		+iptables-mod-tproxy +iptables-mod-extra \
 		+coreutils +coreutils-base64 +haveged +curl
 endef
 
