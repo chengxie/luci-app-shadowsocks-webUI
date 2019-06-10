@@ -1,4 +1,4 @@
--- Copyright (C) 2017 yushi studio <ywb94@qq.com> github.com/ywb94
+-- Copyright (C) 2019 chengxie <chengxie@me.com>
 -- Licensed to the public under the GNU General Public License v3.
 
 local m, s, o
@@ -40,6 +40,19 @@ end
 o.datatype = "uinteger"
 o.default = 10
 o.rmempty = false
+
+-- [[ dns-forwarder ]] --
+s = m:section(TypedSection, "dns-forwarder", translate("DNS Forwarder"))
+s.anonymous   = true
+
+o = s:option(Flag, "enable", translate("Enable"))
+o.rmempty     = false
+
+o = s:option(Value, "dns_servers", translate("DNS Server"))
+o.placeholder = "8.8.8.8:53"
+o.default     = "8.8.8.8:53"
+o.rmempty     = false
+
 
 if has_redir then
 

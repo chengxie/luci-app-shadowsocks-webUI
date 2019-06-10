@@ -16,6 +16,9 @@ msgstr "未启用"
 msgid "Global Settings"
 msgstr "全局设置"
 
+msgid "DNS Forwarder"
+msgstr "DNS转发"
+
 msgid "Running Status"
 msgstr "运行状态"
 
@@ -31,8 +34,8 @@ msgstr "自启动延时"
 msgid "Transparent Proxy List"
 msgstr "透明代理列表"
 
-msgid "UDP Relay"
-msgstr "UDP转发"
+msgid "First server is default proxy"
+msgstr "第一个服务器是默认代理"
 
 msgid "Main Server"
 msgstr "主服务器"

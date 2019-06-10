@@ -27,7 +27,7 @@ define Package/luci-app-shadowsocks-webUI
 	URL:=https://github.com/chengxie/luci-app-shadowsocks-webUI
 	PKGARCH:=all
 	DEPENDS:=+shadowsocks-libev-ss-redir +dns-forwarder \
-		+ipset +ip +iptables \
+		+ipset +ip-full +iptables \
 		+iptables-mod-tproxy +iptables-mod-extra \
 		+coreutils +coreutils-base64 +haveged +curl
 endef
@@ -79,11 +79,9 @@ define Package/luci-app-shadowsocks-webUI/install/Default
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) ./files/root/usr/bin/* $(1)/usr/bin/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/controller
-	$(INSTALL_DATA) ./files/luci/controller/*.lua $(1)/usr/lib/lua/luci/controller/
+	$(INSTALL_DATA) ./files/luci/controller/$(2).lua $(1)/usr/lib/lua/luci/controller/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
 	$(INSTALL_DATA) ./files/luci/i18n/$(2).*.lmo $(1)/usr/lib/lua/luci/i18n
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/model/cbi/
-	$(INSTALL_DATA) ./files/luci/model/cbi/*.lua $(1)/usr/lib/lua/luci/model/cbi/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/model/cbi/$(2)
 	$(INSTALL_DATA) ./files/luci/model/cbi/$(2)/*.lua $(1)/usr/lib/lua/luci/model/cbi/$(2)/
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/view/$(2)

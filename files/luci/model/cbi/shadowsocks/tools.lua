@@ -1,7 +1,6 @@
--- Copyright (C) 2017 yushi studio <ywb94@qq.com>
+-- Copyright (C) 2019 chengxie <chengxie@me.com>
 -- Licensed to the public under the GNU General Public License v3.
 
-local IPK_Version="1.2.1"
 local m, s, o
 local gfw_count=0
 local ip_count=0
@@ -30,7 +29,7 @@ if nixio.fs.access("/etc/shadowsocks/chnroute.list") then
 end
 
 
-m = SimpleForm("Version", "%s - %s" %{translate("ShadowSocks"), translate("Tools")})
+m = SimpleForm("Version", "%s - %s" %{translate("Shadowsocks"), translate("Tools")})
 m.reset = false
 m.submit = false
 

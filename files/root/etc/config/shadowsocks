@@ -1,7 +1,11 @@
 
 
 config general
-	option startup_delay '15'
+	option startup_delay '10'
+
+config dns-forwarder
+	option dns_servers '8.8.8.8'
+	option enable '0'
 
 config access_control
 	option self_proxy '1'

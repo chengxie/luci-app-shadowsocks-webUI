@@ -23,8 +23,8 @@ start_service() {
 	procd_set_param respawn
 	procd_set_param stderr 1
 	procd_set_param command /usr/bin/dns-forwarder
-	procd_append_param command "-b 127.0.0.1"
-	procd_append_param command "-p 5353"
+	procd_append_param command "-b" "127.0.0.1"
+	procd_append_param command "-p" "5353"
 	procd_append_param command "-s" $(uci_get_by_type $SECTION dns_servers 8.8.8.8)
 	procd_close_instance
 }

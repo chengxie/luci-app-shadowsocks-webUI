@@ -175,10 +175,11 @@ start() {
 	config_load $NAME
 	config_foreach start_redir transparent_proxy_list
 	rules
+	/etc/init.d/dns-forwarder start
 }
 
 boot() {
-	local delay=$(uci_get_by_type transparent_proxy startup_delay 0)
+	local delay=$(uci_get_by_type general startup_delay 0)
 	(sleep $delay && start >/dev/null 2>&1) &
 	return 0
 }
@@ -190,5 +191,6 @@ kill_all() {
 stop() {
 	/usr/bin/ss-rules -f
 	kill_all ss-redir
+	/etc/init.d/dns-forwarder stop
 }
 

@@ -1,6 +1,5 @@
 #!/bin/sh
 set -e -o pipefail
-
 LOGTIME=$(date "+%Y-%m-%d")
 URL=https://github.com/gfwlist/gfwlist/raw/master/gfwlist.txt
 TMP_DNSMASQREDIR_FILENAME=/tmp/log/gfwlist.conf.$LOGTIME

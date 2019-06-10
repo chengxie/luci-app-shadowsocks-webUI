@@ -1,4 +1,4 @@
 #!/bin/sh
 
-HTTP_CODE=`curl -o /dev/null --connect-timeout 10 -s --head -w "%{http_code}" "$1"`
+HTTP_CODE=`curl -L -o /dev/null --connect-timeout 10 -s --head -w "%{http_code}" "$1"`
 [ ${HTTP_CODE} -ne 200 ] && return 1 || return 0

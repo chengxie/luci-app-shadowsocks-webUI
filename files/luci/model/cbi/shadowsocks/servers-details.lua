@@ -1,4 +1,4 @@
--- Copyright (C) 2017 yushi studio <ywb94@qq.com> github.com/ywb94
+-- Copyright (C) 2019 chengxie <chengxie@me.com>
 -- Licensed to the public under the GNU General Public License v3.
 
 local m, s, o
