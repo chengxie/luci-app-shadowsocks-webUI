@@ -70,7 +70,6 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	chmod 755 /etc/init.d/$(1) >/dev/null 2>&1
 	/etc/init.d/$(1) enable >/dev/null 2>&1
 fi
-echo "conf-dir=/etc/dnsmasq.d" >> /etc/dnsmasq.conf
 exit 0
 endef
 Package/luci-app-shadowsocks-webUI/postinst = $(call Package/luci-app-shadowsocks-webUI/postinst/Default,shadowsocks)
