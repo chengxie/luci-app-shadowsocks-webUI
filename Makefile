@@ -43,6 +43,8 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
     echo "Removing rc.d symlink for $(1)"
      /etc/init.d/$(1) disable
      /etc/init.d/$(1) stop
+     /etc/init.d/$(2) disable
+     /etc/init.d/$(2) stop     
     echo "Removing firewall rule for $(1)"
 	  uci -q batch <<-EOF >/dev/null
 		delete firewall.$(1)
@@ -51,7 +53,7 @@ EOF
 fi
 exit 0
 endef
-Package/luci-app-shadowsocks-webUI/prerm = $(call Package/luci-app-shadowsocks-webUI/prerm/Default,shadowsocks)
+Package/luci-app-shadowsocks-webUI/prerm = $(call Package/luci-app-shadowsocks-webUI/prerm/Default,shadowsocks,dns-forwarder)
 
 define Package/luci-app-shadowsocks-webUI/postinst/Default
 #!/bin/sh
@@ -69,10 +71,12 @@ if [ -z "$${IPKG_INSTROOT}" ]; then
 	( . /etc/uci-defaults/luci-$(1) ) && rm -f /etc/uci-defaults/luci-$(1)
 	chmod 755 /etc/init.d/$(1) >/dev/null 2>&1
 	/etc/init.d/$(1) enable >/dev/null 2>&1
+	chmod 755 /etc/init.d/$(2) >/dev/null 2>&1
+	/etc/init.d/$(2) enable >/dev/null 2>&1
 fi
 exit 0
 endef
-Package/luci-app-shadowsocks-webUI/postinst = $(call Package/luci-app-shadowsocks-webUI/postinst/Default,shadowsocks)
+Package/luci-app-shadowsocks-webUI/postinst = $(call Package/luci-app-shadowsocks-webUI/postinst/Default,shadowsocks,dns-forwarder)
 
 define Package/luci-app-shadowsocks/conffiles
 /etc/config/shadowsocks

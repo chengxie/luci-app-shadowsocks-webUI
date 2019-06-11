@@ -166,7 +166,7 @@ start_redir() {
 		-l $(uci_get_by_name $1 tpl_local_port 1234) \
 		--mtu $(uci_get_by_name $1 tpl_mtu 1492) \
 		$(get_arg_tfo $server_cfg) $(get_arg_tnd $server_cfg) \
-		-f /var/run/ss-redir-$server_cfg.pid
+		-f /var/run/ss-redir-$1.pid
 }
 
 start() {
@@ -180,7 +180,6 @@ start() {
 	config_load $NAME
 	config_foreach start_redir transparent_proxy_list
 	rules
-	/etc/init.d/dns-forwarder start
 }
 
 boot() {
@@ -196,6 +195,5 @@ kill_all() {
 stop() {
 	/usr/bin/ss-rules -f
 	kill_all ss-redir
-	/etc/init.d/dns-forwarder stop
 }
 
