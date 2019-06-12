@@ -5,6 +5,7 @@ local m, s, o
 local gfw_count=0
 local ip_count=0
 local gfwmode=0
+local IPK_Version = "1.2"
 
 if nixio.fs.access("/etc/dnsmasq.d/gfwlist.conf") then
 	gfwmode=1	
@@ -60,7 +61,7 @@ s.value =translate("No Check")
 
 s=m:field(DummyValue,"version",translate("IPK Version")) 
 s.rawhtml  = true
-s.value =IPK_Version
+s.value = IPK_Version
 
 s=m:field(DummyValue,"project",translate("Project")) 
 s.rawhtml  = true
