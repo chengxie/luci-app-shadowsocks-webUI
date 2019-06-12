@@ -34,7 +34,7 @@ msgstr "自启动延时"
 msgid "Proxy List"
 msgstr "代理列表"
 
-msgid "The first record is the default proxy "
+msgid "The first record is the default proxy"
 msgstr "第一条记录是默认代理"
 
 msgid "Main Server"

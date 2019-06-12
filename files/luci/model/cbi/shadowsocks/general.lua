@@ -58,7 +58,7 @@ if has_redir then
 
 	-- [[ Server List ]]--
 	s = m:section(TypedSection, "transparent_proxy_list", 
-			translate("Proxy List"), translate("The first record is the default proxy "))
+			translate("Proxy List"), translate("The first record is the default proxy"))
 	s.template = "cbi/tblsection"
 	s.addremove = true
 	s.anonymous = true
