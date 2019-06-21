@@ -8,7 +8,9 @@ local nwm = require("luci.model.network").init()
 local lan_ifaces = {}
 local proxy_list = {}
 uci:foreach(shadowsocks, "transparent_proxy_list", function(s)
-	proxy_list[#proxy_list+1] = { name = s[".name"], alias = s.alias }
+	--proxy_list[#proxy_list+1] = { name = s[".name"], alias = s.alias }
+	local count = #proxy_list
+	proxy_list[count+1] = { name = count, alias = s.alias }
 end)
 
 for _, net in ipairs(nwm:get_networks()) do
