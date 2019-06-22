@@ -9,7 +9,7 @@ if [ "$?" == "0" ]; then
 	echo '['$LOGTIME'] updating gfwlist.conf from gfwlist.'
 	/usr/bin/gfwlist2dnsmasq.sh -o $TMP_DNSMASQREDIR_FILENAME
 	if [ "$?" == "0" ]; then
-		cp $TMP_DNSMASQREDIR_FILENAME /etc/dnsmasq.d/gfwlist.conf
+		mv $TMP_DNSMASQREDIR_FILENAME /etc/dnsmasq.d/gfwlist.conf
 		echo '['$LOGTIME'] restarting dnsmasq.'
 		/etc/init.d/dnsmasq restart
 	else

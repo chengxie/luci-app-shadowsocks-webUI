@@ -65,12 +65,11 @@ get_arg_tnd() {
 }
 
 get_lan_hosts() {
-	#local tplservername=$(uci_get_by_name $1 server)
-	#local tplport=$(uci_get_by_name $tplservername tpl_local_port)
 	local tplindex=$(uci_get_by_name $1 server)
-	local tplport=$(uci_get_by_index transparent_proxy_list $tplindex tpl_local_port 1234)
-	[ $tplservername = "nil" ] || \
+	if [ $tplindex != "nil" ]; then
+		local tplport=$(uci_get_by_index transparent_proxy_list $tplindex tpl_local_port 1234)
 		echo "$(uci_get_by_name $1 type),$(uci_get_by_name $1 macaddr),$tplport"
+	fi
 }
 
 get_plugin_config() {
